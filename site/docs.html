@@ -1,0 +1,252 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <title>Documentation · boot-effect</title>
+  <meta name="description" content="Install boot-effect, point it at a photograph, and tune it: options, methods, layout, sky detection, performance.">
+  <meta name="theme-color" content="#f5f3fa">
+  <link rel="icon" href="favicon.svg" type="image/svg+xml">
+  <link rel="preload" href="assets/fonts/lora.woff" as="font" type="font/woff" crossorigin>
+  <meta property="og:type" content="website">
+  <meta property="og:title" content="boot-effect documentation">
+  <meta property="og:description" content="Install, options, methods, layout, sky detection and performance notes.">
+  <meta property="og:image" content="https://adityabhatnagar1.github.io/boot-effect/assets/social-card.png">
+  <meta name="twitter:card" content="summary_large_image">
+  <link rel="stylesheet" href="assets/site.css">
+</head>
+<body>
+  <header class="site-header">
+    <div class="wrap">
+      <a class="wordmark" href="./" aria-label="boot-effect home">
+        <svg viewBox="0 0 64 64" aria-hidden="true"><rect width="64" height="64" rx="14" fill="#0b2bd0"/><g fill="none" stroke="#fff"><circle cx="32" cy="32" r="7" fill="#f26a2e" stroke="none"/><circle cx="32" cy="32" r="14" stroke-width="2.6"/><circle cx="32" cy="32" r="22" stroke-width="2" opacity=".6"/></g></svg>
+        boot-effect
+      </a>
+      <nav class="site-nav" aria-label="Main">
+        <a href="playground.html">Playground</a>
+        <a href="docs.html" aria-current="page">Docs</a>
+        <a href="how-it-works.html" class="nav-optional">How it works</a>
+        <a class="nav-gh" href="https://github.com/adityabhatnagar1/boot-effect">GitHub</a>
+      </nav>
+    </div>
+  </header>
+
+  <main>
+    <div class="page-title paper-grid">
+      <div class="wrap">
+        <span class="kicker">Documentation</span>
+        <h1>Install it, point it at a photograph</h1>
+        <p class="lede">boot-effect is one UMD file. It creates a canvas inside the element you give it, analyses the photograph, and plays a 250-frame sequence at 30 fps.</p>
+      </div>
+    </div>
+
+    <div class="wrap docs">
+      <nav class="toc" aria-label="On this page">
+        <h2>On this page</h2>
+        <ul>
+          <li><a href="#install">Install</a></li>
+          <li><a href="#quick-start">Quick start</a></li>
+          <li><a href="#photos">Photographs</a></li>
+          <li><a href="#sky">Sky detection</a></li>
+          <li><a href="#layout">Layout</a></li>
+          <li><a href="#options">Options</a></li>
+          <li><a href="#api">Methods and properties</a></li>
+          <li><a href="#events">Callbacks</a></li>
+          <li><a href="#a11y">Accessibility</a></li>
+          <li><a href="#performance">Performance</a></li>
+          <li><a href="#failure">When things fail</a></li>
+          <li><a href="#frameworks">TypeScript and React</a></li>
+          <li><a href="#support">Browser support</a></li>
+        </ul>
+      </nav>
+
+      <article class="prose">
+        <h2 id="install">Install</h2>
+        <p>Load the script, or install the package. The library has no dependencies.</p>
+        <div class="code"><span class="label">Script tag</span><pre><span class="tok-k">&lt;script</span> src=<span class="tok-s">"https://cdn.jsdelivr.net/gh/adityabhatnagar1/boot-effect@v1.0.0/dist/boot-effect.js"</span><span class="tok-k">&gt;&lt;/script&gt;</span></pre></div>
+        <div class="code"><span class="label">npm</span><pre>npm install boot-effect</pre></div>
+        <div class="code"><span class="label">ES module or CommonJS</span><pre><span class="tok-k">import</span> BootEffect <span class="tok-k">from</span> <span class="tok-s">"boot-effect"</span>;
+<span class="tok-c">// const BootEffect = require("boot-effect");</span></pre></div>
+        <p>You can also copy <code>dist/boot-effect.js</code> from the repository and serve it yourself.</p>
+
+        <h2 id="quick-start">Quick start</h2>
+        <div class="code"><span class="label">JavaScript</span><pre><span class="tok-k">const</span> fx = <span class="tok-k">new</span> BootEffect(<span class="tok-s">"#intro"</span>, {
+  photo: <span class="tok-s">"sunset.jpg"</span>,
+  sky: { mode: <span class="tok-s">"warm"</span>, horizon: <span class="tok-n">0.49</span> },
+  onComplete: () =&gt; document.body.classList.add(<span class="tok-s">"ready"</span>)
+});</pre></div>
+        <p>The first argument is an element or a selector. The effect fills it: with <code>layout.height</code> left at <code>"auto"</code> the box takes a 16:9 shape in landscape windows and 9:16 in portrait ones. Give the element its own size, or pass an explicit <code>layout</code>, to override that.</p>
+        <p>Playback starts as soon as the photograph has loaded and been analysed. Pass <code>autoplay: false</code> to hold on the first frame and call <code>fx.play()</code> yourself.</p>
+
+        <h2 id="photos">Photographs</h2>
+        <p><code>photo</code> accepts a URL string, an <code>HTMLImageElement</code>, an <code>ImageBitmap</code> or a canvas. To use different art for portrait and landscape boxes pass an object:</p>
+        <div class="code"><span class="label">JavaScript</span><pre>photo: {
+  landscape: <span class="tok-s">"wide.jpg"</span>,
+  portrait: <span class="tok-s">"tall.jpg"</span>
+}</pre></div>
+        <p>A single image is used for both. The effect picks the variant from the shape of the box and switches if the box changes shape.</p>
+        <ul>
+          <li><strong>Resolution.</strong> The photograph is the only source of detail. Give it at least the pixel width of the largest screen you care about; the library downscales with a proper filter but cannot invent pixels. The demo photograph is 2576 by 1449.</li>
+          <li><strong>Cross-origin images.</strong> A photograph from another origin must be served with CORS headers, because its pixels are read for the analysis.</li>
+          <li><strong>Very large images.</strong> If the photograph is larger than the GPU's maximum texture size it is downscaled once on load.</li>
+          <li><strong>Colour.</strong> The photograph is sampled as sRGB.</li>
+        </ul>
+
+        <h2 id="sky">Sky detection</h2>
+        <p>The grid grows out of the sky, so the library needs to know where the sky is. <code>sky: "auto"</code> chooses one of three rules per photograph. Set it explicitly when the guess is wrong.</p>
+        <div class="table-wrap"><table>
+          <thead><tr><th>Mode</th><th>Use it for</th><th>How it decides</th></tr></thead>
+          <tbody>
+            <tr><td><code>blue</code></td><td>Clear daytime sky</td><td>Blue-dominant pixels above a brightness floor.</td></tr>
+            <tr><td><code>haze</code></td><td>Fog, overcast, milky skies</td><td>Pixels that are bright and locally smooth.</td></tr>
+            <tr><td><code>warm</code></td><td>Sunrise, sunset, dusk</td><td>Orange, pink and violet pixels plus pale glow, kept only where connected to the top edge.</td></tr>
+          </tbody>
+        </table></div>
+        <p>Pass an object to tune a mode:</p>
+        <div class="code"><span class="label">JavaScript</span><pre>sky: {
+  mode: <span class="tok-s">"warm"</span>,
+  horizon: <span class="tok-n">0.49</span>,    <span class="tok-c">// nothing below 49% of the photo height is sky</span>
+  connected: <span class="tok-k">true</span>   <span class="tok-c">// keep only sky reachable from the top edge (default for "warm")</span>
+}</pre></div>
+        <p><code>horizon</code> works in every mode and is the fix for water: a reflection of the sky is bright and colourful too, and without a horizon it would be gridded as well. In <code>haze</code> mode, <code>lo</code>, <code>hi</code>, <code>sdLo</code> and <code>sdHi</code> set the luminance and smoothness ranges.</p>
+        <p>Call <code>fx.analysis()</code> after <code>onReady</code> to see what was found: the rule that was applied, the centre and radius of the largest clear circle, and the mask itself. The <a href="playground.html">playground</a> shows these live for your own photographs. To override the centre of the effect, pass <code>center: [u, v]</code> in photo coordinates from 0 to 1.</p>
+
+        <h2 id="layout">Layout</h2>
+        <p>By default the effect is <code>"inline"</code>: a block as wide as its parent, with the height following <code>aspect</code>.</p>
+        <div class="code"><span class="label">A full-screen intro that removes itself</span><pre><span class="tok-k">const</span> intro = <span class="tok-k">new</span> BootEffect(document.body, {
+  photo: <span class="tok-s">"hero.jpg"</span>,
+  layout: <span class="tok-s">"fullscreen"</span>,
+  hideOnComplete: <span class="tok-k">true</span>
+});
+intro.done.then((fx) =&gt; fx.destroy());</pre></div>
+        <p><code>"fullscreen"</code> is a fixed box of 100vw by 100dvh at <code>z-index: 9999</code>. The element ignores pointer events, so it never blocks the page underneath.</p>
+        <div class="code"><span class="label">Anchored over part of a page</span><pre><span class="tok-k">new</span> BootEffect(<span class="tok-s">"#card"</span>, {
+  photo: <span class="tok-s">"hero.jpg"</span>,
+  layout: { position: <span class="tok-s">"absolute"</span>, anchor: <span class="tok-s">"bottom-right"</span>, width: <span class="tok-s">"40%"</span> },
+  fit: <span class="tok-s">"contain"</span>
+});</pre></div>
+        <p><code>fit</code> decides how the photograph meets the box: <code>cover</code> fills and crops, <code>contain</code> shows the whole picture and extends the mean sky colour around it, <code>fill</code> stretches. With <code>cover</code>, <code>focus</code> chooses which point of the photograph stays centred, as <code>{ portrait: [u, v], landscape: [u, v] }</code>; by default it follows the sky.</p>
+
+        <h2 id="options">Options</h2>
+        <div class="table-wrap"><table>
+          <thead><tr><th>Option</th><th>Default</th><th>What it does</th></tr></thead>
+          <tbody>
+            <tr><td><code>photo</code></td><td>required</td><td>URL, image, bitmap or canvas, or <code>{ default, portrait, landscape }</code>.</td></tr>
+            <tr><td><code>autoplay</code></td><td><code>true</code></td><td>Start as soon as the photograph is ready.</td></tr>
+            <tr><td><code>loop</code></td><td><code>false</code></td><td>Restart after the last frame instead of finishing.</td></tr>
+            <tr><td><code>speed</code></td><td><code>1</code></td><td>Playback rate multiplier.</td></tr>
+            <tr><td><code>layout</code></td><td><code>"inline"</code></td><td><code>"inline"</code>, <code>"fullscreen"</code>, or an object: <code>position</code>, <code>anchor</code>, <code>top</code>, <code>left</code>, <code>right</code>, <code>bottom</code>, <code>width</code>, <code>height</code>, <code>maxWidth</code>, <code>maxHeight</code>, <code>zIndex</code>, <code>transform</code>.</td></tr>
+            <tr><td><code>aspect</code></td><td><code>"auto"</code></td><td>Box shape when the height is <code>"auto"</code>: <code>"auto"</code>, <code>"16/9"</code>, <code>"9/16"</code> or a number.</td></tr>
+            <tr><td><code>fit</code></td><td><code>"cover"</code></td><td><code>"cover"</code>, <code>"contain"</code> or <code>"fill"</code>.</td></tr>
+            <tr><td><code>focus</code></td><td><code>null</code></td><td>Photo point kept at the middle of the box, per orientation.</td></tr>
+            <tr><td><code>sky</code></td><td><code>"auto"</code></td><td><code>"auto"</code>, <code>"blue"</code>, <code>"haze"</code>, <code>"warm"</code>, or an object (see above).</td></tr>
+            <tr><td><code>center</code></td><td>auto</td><td>Centre of the effect in photo coordinates, <code>[u, v]</code>, or per orientation.</td></tr>
+            <tr><td><code>grade</code></td><td><code>"auto"</code></td><td>0 to 1: how much non-sky pixels darken during the grid phase. Auto uses 1 for blue skies, 0.6 for warm, 0.3 for haze.</td></tr>
+            <tr><td><code>effectScale</code></td><td><code>1</code></td><td>Multiplier on the automatic effect size.</td></tr>
+            <tr><td><code>sharpen</code></td><td><code>"auto"</code></td><td>0 to 1, or <code>"auto"</code>, which sharpens only when the photograph is magnified.</td></tr>
+            <tr><td><code>textScale</code></td><td><code>1</code></td><td>Size of the stop-screen text.</td></tr>
+            <tr><td><code>maxPixelRatio</code></td><td><code>3</code></td><td>Cap on the device pixel ratio.</td></tr>
+            <tr><td><code>maxPixels</code></td><td><code>14.7e6</code></td><td>Cap on the canvas pixel count, roughly 5K.</td></tr>
+            <tr><td><code>adaptive</code></td><td><code>true</code></td><td>Lower the render resolution if frames run long.</td></tr>
+            <tr><td><code>respectReducedMotion</code></td><td><code>true</code></td><td>Skip the animation for visitors who prefer reduced motion.</td></tr>
+            <tr><td><code>hideOnComplete</code></td><td><code>false</code></td><td>Hide the element when playback ends.</td></tr>
+            <tr><td><code>pauseWhenHidden</code></td><td><code>true</code></td><td>Pause while the tab is in the background.</td></tr>
+            <tr><td><code>fallback</code></td><td><code>"photo"</code></td><td>Without WebGL, show the still photograph (<code>"photo"</code>, needs <code>photo</code> to be a URL) or nothing (<code>"none"</code>).</td></tr>
+            <tr><td><code>label</code></td><td><code>"Loading animation"</code></td><td>Accessible label of the element.</td></tr>
+          </tbody>
+        </table></div>
+
+        <h2 id="api">Methods and properties</h2>
+        <div class="table-wrap"><table>
+          <thead><tr><th>Member</th><th>Description</th></tr></thead>
+          <tbody>
+            <tr><td><code>play()</code></td><td>Start or resume. From the last frame it starts over.</td></tr>
+            <tr><td><code>pause()</code></td><td>Stop on the current frame.</td></tr>
+            <tr><td><code>stop()</code></td><td>Pause and show frame 0.</td></tr>
+            <tr><td><code>restart()</code></td><td>Play from frame 0.</td></tr>
+            <tr><td><code>skip()</code></td><td>Jump to the last frame and fire <code>onComplete</code>.</td></tr>
+            <tr><td><code>seek(frame)</code></td><td>Show a frame, 0 to 249.</td></tr>
+            <tr><td><code>seekTime(ms)</code></td><td>Show the frame at a time in milliseconds.</td></tr>
+            <tr><td><code>setOptions(patch)</code></td><td>Change <code>fit</code>, <code>focus</code>, <code>effectScale</code>, <code>sharpen</code>, <code>textScale</code>, <code>grade</code>, <code>speed</code>, <code>loop</code>, <code>aspect</code> or <code>center</code> on a running instance. <code>photo</code> and <code>sky</code> need a new instance.</td></tr>
+            <tr><td><code>setLayout(patch)</code></td><td>Change the layout. Accepts <code>"fullscreen"</code>, <code>"inline"</code> or a partial layout object.</td></tr>
+            <tr><td><code>setSize(width, height?)</code></td><td>Shorthand for <code>setLayout</code> with a width and height.</td></tr>
+            <tr><td><code>analysis()</code></td><td>What the sky analysis found: <code>mode</code>, <code>centre</code>, <code>radius</code>, <code>reach</code>, <code>skyColour</code>, <code>mask</code>.</td></tr>
+            <tr><td><code>snapshot(type?, quality?)</code></td><td>Data URL of the current frame at full canvas resolution.</td></tr>
+            <tr><td><code>destroy()</code></td><td>Stop, release GPU resources and remove the element.</td></tr>
+            <tr><td><code>frame</code>, <code>progress</code></td><td>Current frame, and progress from 0 to 1.</td></tr>
+            <tr><td><code>playing</code>, <code>ready</code>, <code>finished</code></td><td>Playback state.</td></tr>
+            <tr><td><code>done</code></td><td>Promise that resolves on completion, skip, or destroy.</td></tr>
+            <tr><td><code>size</code></td><td>Current canvas size and pixel ratio.</td></tr>
+            <tr><td><code>el</code>, <code>canvas</code></td><td>The wrapper element and its canvas.</td></tr>
+            <tr><td><code>BootEffect.supported()</code></td><td>Whether a WebGL context can be created.</td></tr>
+            <tr><td><code>BootEffect.VERSION</code>, <code>FRAMES</code>, <code>FPS</code>, <code>DURATION</code></td><td>Constants. The sequence is 250 frames at 30 fps, 8333 ms.</td></tr>
+          </tbody>
+        </table></div>
+
+        <h2 id="events">Callbacks</h2>
+        <div class="table-wrap"><table>
+          <thead><tr><th>Callback</th><th>Fires</th></tr></thead>
+          <tbody>
+            <tr><td><code>onReady(fx)</code></td><td>The photograph is loaded and analysed, before playback starts.</td></tr>
+            <tr><td><code>onFrame(frame)</code></td><td>After every rendered frame.</td></tr>
+            <tr><td><code>onComplete(fx)</code></td><td>Playback reached the last frame, or <code>skip()</code> was called.</td></tr>
+            <tr><td><code>onSkip()</code></td><td>The animation was skipped for reduced motion.</td></tr>
+            <tr><td><code>onError(error)</code></td><td>The photograph could not be loaded, or WebGL is unavailable.</td></tr>
+          </tbody>
+        </table></div>
+
+        <h2 id="a11y">Accessibility</h2>
+        <p>The element has <code>role="img"</code> and carries <code>label</code> as its accessible name; give it a sentence that says what the visitor is waiting for. With <code>respectReducedMotion</code> on, a visitor whose system asks for reduced motion sees no animation at all: <code>onSkip</code> fires, the instance finishes at once, and you can continue to your page.</p>
+        <p>The last seconds of the sequence contain fast flashes: a black and white cut, a photograph frame, and flickering speckle. If your audience may include people sensitive to flashing, keep <code>respectReducedMotion</code> on, and consider not using the effect where it cannot be skipped.</p>
+
+        <h2 id="performance">Performance</h2>
+        <ul>
+          <li><strong>One pass per frame.</strong> Every phase is the same fragment shader with different uniforms; a frame costs one full-screen draw.</li>
+          <li><strong>Pixel budget.</strong> The canvas is sized to the box times the device pixel ratio, capped by <code>maxPixelRatio</code> and <code>maxPixels</code>. If the average frame takes more than 30 ms over 24 frames, the pixel ratio is lowered in steps, down to 55% of what it would otherwise be.</li>
+          <li><strong>Photograph pyramid.</strong> Smaller copies of the photograph, each a box-filtered half of the one before, are created on demand so a phone does not downsample a 2500-pixel image with a single bilinear tap.</li>
+          <li><strong>Sampling.</strong> The photograph is read with a Catmull-Rom bicubic filter, with optional adaptive sharpening when it is magnified, and the output is dithered by one level to avoid banding in smooth gradients such as skies.</li>
+          <li><strong>Background tabs.</strong> Playback pauses while the tab is hidden and resumes when it returns.</li>
+        </ul>
+
+        <h2 id="failure">When things fail</h2>
+        <p>If the photograph cannot be loaded, or WebGL is unavailable, <code>onError</code> fires. With the default <code>fallback: "photo"</code> the element then shows the still photograph and finishes, so <code>done</code> still resolves and your page can carry on. A lost GPU context is restored automatically and the current frame is redrawn.</p>
+
+        <h2 id="frameworks">TypeScript and React</h2>
+        <p>Typings ship with the package (<code>dist/boot-effect.d.ts</code>). A React wrapper that keeps the layout and playback options live is in the repository at <code>examples/react/BootEffect.tsx</code>:</p>
+        <div class="code"><span class="label">React</span><pre><span class="tok-k">&lt;BootEffect</span>
+  photo=<span class="tok-s">"/sunset.jpg"</span>
+  sky={{ mode: <span class="tok-s">"warm"</span>, horizon: <span class="tok-n">0.49</span> }}
+  layout=<span class="tok-s">"fullscreen"</span>
+  hideOnComplete
+  onComplete={(fx) =&gt; fx.destroy()}
+<span class="tok-k">/&gt;</span></pre></div>
+
+        <h2 id="support">Browser support</h2>
+        <p>The library needs WebGL 1, canvas 2D and <code>Promise</code>. <code>ResizeObserver</code> and <code>Image.decode()</code> are used when present. It was developed and rendered in Chromium; it uses only WebGL 1 features, but if you target a specific browser version, check it there.</p>
+        <div class="callout"><p>Spotted something wrong? <a href="https://github.com/adityabhatnagar1/boot-effect/issues">Open an issue</a> with the browser, the photograph (or a similar one), and the options you used.</p></div>
+      </article>
+    </div>
+  </main>
+
+  <footer class="site-footer">
+    <div class="wrap">
+      <div>
+        <a class="wordmark" href="./">boot-effect</a>
+        <p style="max-width:22rem;margin:0">A procedural boot intro for any photograph.<br>Made by <a href="https://adityabhatnagar.is-a.dev">Aditya Bhatnagar</a>.</p>
+        <small>Code is MIT licensed. The demo photograph is not part of that licence.</small>
+      </div>
+      <div>
+        <h2>Project</h2>
+        <ul>
+          <li><a href="docs.html">Documentation</a></li>
+          <li><a href="playground.html">Playground</a></li>
+          <li><a href="how-it-works.html">How it works</a></li>
+          <li><a href="https://github.com/adityabhatnagar1/boot-effect">Source on GitHub</a></li>
+        </ul>
+      </div>
+    </div>
+  </footer>
+
+  <script src="assets/site.js"></script>
+</body>
+</html>

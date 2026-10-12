@@ -1,0 +1,3 @@
+User-agent: *
+Allow: /
+Sitemap: https://adityabhatnagar1.github.io/boot-effect/sitemap.xml

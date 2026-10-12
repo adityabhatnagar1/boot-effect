@@ -1,0 +1,192 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <title>boot-effect: a procedural boot intro for any photograph</title>
+  <meta name="description" content="boot-effect finds the sky in a photograph, grows a polar grid out of it, and cuts to a crash screen. One image, one WebGL shader, no dependencies.">
+  <meta name="theme-color" content="#0a1015">
+  <link rel="icon" href="favicon.svg" type="image/svg+xml">
+  <link rel="preload" href="assets/lake.jpg" as="image" fetchpriority="high">
+  <link rel="preload" href="assets/fonts/lora.woff" as="font" type="font/woff" crossorigin>
+  <meta property="og:type" content="website">
+  <meta property="og:title" content="boot-effect">
+  <meta property="og:description" content="A procedural boot intro for any photograph. One image, one WebGL shader, no dependencies.">
+  <meta property="og:image" content="https://adityabhatnagar1.github.io/boot-effect/assets/social-card.png">
+  <meta property="og:url" content="https://adityabhatnagar1.github.io/boot-effect/">
+  <meta name="twitter:card" content="summary_large_image">
+  <link rel="stylesheet" href="assets/site.css">
+</head>
+<body>
+  <header class="site-header on-hero" data-hero>
+    <div class="wrap">
+      <a class="wordmark" href="./" aria-label="boot-effect home">
+        <svg viewBox="0 0 64 64" aria-hidden="true"><rect width="64" height="64" rx="14" fill="#0b2bd0"/><g fill="none" stroke="#fff"><circle cx="32" cy="32" r="7" fill="#f26a2e" stroke="none"/><circle cx="32" cy="32" r="14" stroke-width="2.6"/><circle cx="32" cy="32" r="22" stroke-width="2" opacity=".6"/></g></svg>
+        boot-effect
+      </a>
+      <nav class="site-nav" aria-label="Main">
+        <a href="playground.html">Playground</a>
+        <a href="docs.html">Docs</a>
+        <a href="how-it-works.html" class="nav-optional">How it works</a>
+        <a class="nav-gh" href="https://github.com/adityabhatnagar1/boot-effect">GitHub</a>
+      </nav>
+    </div>
+  </header>
+
+  <main>
+    <section class="hero" aria-labelledby="hero-title">
+      <div class="hero__stage" id="hero-stage"></div>
+      <div class="hero__shade"></div>
+      <div class="hero__copy">
+        <span class="kicker">v1.0.0 &middot; MIT &middot; 8.3 seconds</span>
+        <h1 id="hero-title">The sky turns to <em>graph paper.</em> Then the screen goes blue.</h1>
+        <p class="hero__sub">boot-effect is a procedural intro for any photograph. It finds the sky, grows a polar grid out of it, and cuts to a crash screen. One image, one WebGL shader, no dependencies.</p>
+        <div class="hero__actions">
+          <button class="btn btn-primary" id="hero-replay" type="button">Run the intro</button>
+          <a class="btn btn-ghost" href="playground.html">Open the playground</a>
+          <a class="btn btn-ghost" href="docs.html#install">Install</a>
+        </div>
+      </div>
+      <div class="hero__meter" aria-hidden="true">frame <b id="hero-frame">000</b> / 249<br>30 fps</div>
+    </section>
+
+    <section class="section" id="what">
+      <div class="wrap">
+        <div class="section-head">
+          <span class="kicker">What it does</span>
+          <h2>Three moves, 250 frames</h2>
+          <p>Nothing is pre-rendered. The picture you give it is analysed in the browser, and every frame is drawn by a single fragment shader.</p>
+        </div>
+        <div class="steps">
+          <article class="step">
+            <img src="assets/frames/sky-mask.jpg" width="960" height="540" loading="lazy" alt="The lake photograph with its sky tinted blue and a white circle marking the largest clear area of sky">
+            <h3>It finds the sky</h3>
+            <p>A colour and connectivity analysis separates sky from everything else, then fits the largest circle into it. That circle is where the effect is centred.</p>
+          </article>
+          <article class="step">
+            <img src="assets/frames/130.jpg" width="960" height="540" loading="lazy" alt="A polar grid of dialog windows covering the sky, with a yellow glow around a disc of the original sunset">
+            <h3>It grows a grid</h3>
+            <p>A logarithmic polar grid replaces the sky, tiles of dialog windows appear on it, and a small disc of the original photograph holds out in the middle until it collapses.</p>
+          </article>
+          <article class="step">
+            <img src="assets/frames/217.jpg" width="960" height="540" loading="lazy" alt="A blue screen with white text over a faint ghost of the lake photograph">
+            <h3>It crashes</h3>
+            <p>A hard black and white cut, a mosaic, then a blue stop screen that types itself out while speckle drawn from the photo's own edges flickers over it.</p>
+          </article>
+        </div>
+      </div>
+    </section>
+
+    <section class="section paper-grid" id="sequence">
+      <div class="wrap">
+        <div class="section-head">
+          <span class="kicker">The sequence</span>
+          <h2>Ten frames from the run</h2>
+          <p>Each frame links to the playground, paused on exactly that frame.</p>
+        </div>
+        <div class="film" role="list">
+          <a role="listitem" href="playground.html?frame=0"><img src="assets/frames/000.jpg" width="960" height="540" loading="lazy" alt="Frame 0, the untouched photograph"><span class="cap"><b>FRAME 000</b>The photograph, untouched.</span></a>
+          <a role="listitem" href="playground.html?frame=40"><img src="assets/frames/040.jpg" width="960" height="540" loading="lazy" alt="Frame 40, the sky replaced by a grid around a shrinking disc"><span class="cap"><b>FRAME 040</b>The disc closes in. Everything outside it becomes paper.</span></a>
+          <a role="listitem" href="playground.html?frame=90"><img src="assets/frames/090.jpg" width="960" height="540" loading="lazy" alt="Frame 90, dialog windows tiling the grid"><span class="cap"><b>FRAME 090</b>Dialog windows tile the grid.</span></a>
+          <a role="listitem" href="playground.html?frame=130"><img src="assets/frames/130.jpg" width="960" height="540" loading="lazy" alt="Frame 130, a yellow glow around the disc"><span class="cap"><b>FRAME 130</b>A glow gathers around the disc.</span></a>
+          <a role="listitem" href="playground.html?frame=152"><img src="assets/frames/152.jpg" width="960" height="540" loading="lazy" alt="Frame 152, violet rings around the disc"><span class="cap"><b>FRAME 152</b>Violet rings, sparks inside the disc.</span></a>
+          <a role="listitem" href="playground.html?frame=190"><img src="assets/frames/190.jpg" width="960" height="540" loading="lazy" alt="Frame 190, the disc almost closed"><span class="cap"><b>FRAME 190</b>The disc collapses to a point.</span></a>
+          <a role="listitem" href="playground.html?frame=205"><img src="assets/frames/205.jpg" width="960" height="540" loading="lazy" alt="Frame 205, a hard black and white cut of the photograph"><span class="cap"><b>FRAME 205</b>A hard black and white cut.</span></a>
+          <a role="listitem" href="playground.html?frame=212"><img src="assets/frames/212.jpg" width="960" height="540" loading="lazy" alt="Frame 212, a flat blue stop screen with the first lines of text"><span class="cap"><b>FRAME 212</b>The stop screen types itself out.</span></a>
+          <a role="listitem" href="playground.html?frame=217"><img src="assets/frames/217.jpg" width="960" height="540" loading="lazy" alt="Frame 217, a tinted ghost of the photo under the blue"><span class="cap"><b>FRAME 217</b>A tinted ghost of the photo under the blue.</span></a>
+          <a role="listitem" href="playground.html?frame=244"><img src="assets/frames/244.jpg" width="960" height="540" loading="lazy" alt="Frame 244, white speckle following the edges of the photograph on blue"><span class="cap"><b>FRAME 244</b>Speckle that follows the photo's edges.</span></a>
+        </div>
+      </div>
+    </section>
+
+    <section class="section" id="use">
+      <div class="wrap">
+        <div class="split top">
+          <div>
+            <div class="section-head" style="margin-bottom:0">
+              <span class="kicker">Use it</span>
+              <h2>Six lines to ship</h2>
+              <p>Drop in the script, point it at a photograph, done. The library creates its own canvas, sizes it to the box, and picks 16:9 or 9:16 from the window.</p>
+              <p><a href="docs.html">Read the docs</a> or <a href="playground.html">tune the effect live</a> and copy the options.</p>
+            </div>
+          </div>
+          <div>
+            <div class="code"><span class="label">HTML</span><pre><span class="tok-k">&lt;div</span> id=<span class="tok-s">"intro"</span><span class="tok-k">&gt;&lt;/div&gt;</span>
+<span class="tok-k">&lt;script</span> src=<span class="tok-s">"boot-effect.js"</span><span class="tok-k">&gt;&lt;/script&gt;</span>
+<span class="tok-k">&lt;script&gt;</span>
+  <span class="tok-k">new</span> BootEffect(<span class="tok-s">"#intro"</span>, {
+    photo: <span class="tok-s">"sunset.jpg"</span>,
+    sky: { mode: <span class="tok-s">"warm"</span>, horizon: <span class="tok-n">0.49</span> }
+  });
+<span class="tok-k">&lt;/script&gt;</span></pre></div>
+            <div class="code"><span class="label">npm</span><pre>npm install boot-effect</pre></div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="section paper-grid" id="facts">
+      <div class="wrap">
+        <div class="facts">
+          <div class="fact"><b>8.3 s</b><span>250 frames at 30 fps, one fragment shader pass per frame</span></div>
+          <div class="fact"><b>16 KB</b><span>gzipped, unminified core, with no dependencies</span></div>
+          <div class="fact"><b>5K</b><span>output budget, adaptive: it backs off if frames run long</span></div>
+          <div class="fact"><b>1 photo</b><span>in, any aspect ratio, portrait or landscape</span></div>
+        </div>
+      </div>
+    </section>
+
+    <section class="section" id="sky">
+      <div class="wrap">
+        <div class="split">
+          <figure class="figure">
+            <img src="assets/frames/sky-mask.jpg" width="960" height="540" loading="lazy" alt="Sky mask of the lake photograph: the sunset sky is tinted blue, the treeline and the mirrored reflection are not">
+            <figcaption>The detector's view of the lake photo. The reflection in the water is not sky and is left alone.</figcaption>
+          </figure>
+          <div>
+            <div class="section-head" style="margin-bottom:0">
+              <span class="kicker">Sky detection</span>
+              <h2>It does not need a blue sky</h2>
+              <p>Three rules cover most photographs. <code>blue</code> keys on colour, <code>haze</code> looks for bright, smooth regions such as fog and overcast, and <code>warm</code> handles sunrise, sunset and dusk, where the sky is orange, pink and violet.</p>
+              <p>The warm rule only keeps sky that connects to the top edge and sits above a horizon you can set, which is how a mirrored reflection stays out of the mask. <a href="how-it-works.html#analysis">How the analysis works</a>.</p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="section on-dark" style="background:var(--ink);color:#e6e1f1">
+      <div class="wrap" style="display:flex;flex-wrap:wrap;gap:2rem;align-items:center;justify-content:space-between">
+        <div style="max-width:34rem">
+          <h2 style="color:#fff">Try it on your own photograph</h2>
+          <p style="margin:1rem 0 0;color:#b9c2d6">The playground runs entirely in your browser. Pick a file, choose the sky rule, drag the horizon, and copy the options that worked.</p>
+        </div>
+        <a class="btn btn-primary" href="playground.html" style="background:#fff;color:var(--blue-deep)">Open the playground</a>
+      </div>
+    </section>
+  </main>
+
+  <footer class="site-footer">
+    <div class="wrap">
+      <div>
+        <a class="wordmark" href="./">boot-effect</a>
+        <p style="max-width:22rem;margin:0">A procedural boot intro for any photograph.<br>Made by <a href="https://adityabhatnagar.is-a.dev">Aditya Bhatnagar</a>.</p>
+        <small>Code is MIT licensed. The demo photograph is not part of that licence.</small>
+      </div>
+      <div>
+        <h2>Project</h2>
+        <ul>
+          <li><a href="docs.html">Documentation</a></li>
+          <li><a href="playground.html">Playground</a></li>
+          <li><a href="how-it-works.html">How it works</a></li>
+          <li><a href="https://github.com/adityabhatnagar1/boot-effect">Source on GitHub</a></li>
+        </ul>
+      </div>
+    </div>
+  </footer>
+
+  <script src="lib/boot-effect.js"></script>
+  <script src="assets/site.js"></script>
+  <script src="assets/home.js"></script>
+</body>
+</html>

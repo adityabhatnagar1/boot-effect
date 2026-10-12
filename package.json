@@ -1,0 +1,23 @@
+{
+  "name": "boot-effect",
+  "version": "1.0.0",
+  "description": "A procedural polar-grid boot intro for any photograph: one still image, one WebGL shader, no dependencies.",
+  "keywords": ["webgl", "shader", "intro", "animation", "boot", "canvas", "glsl"],
+  "homepage": "https://adityabhatnagar1.github.io/boot-effect/",
+  "repository": { "type": "git", "url": "git+https://github.com/adityabhatnagar1/boot-effect.git" },
+  "bugs": { "url": "https://github.com/adityabhatnagar1/boot-effect/issues" },
+  "license": "MIT",
+  "author": "Aditya Bhatnagar",
+  "main": "dist/boot-effect.js",
+  "module": "dist/boot-effect.js",
+  "browser": "dist/boot-effect.js",
+  "types": "dist/boot-effect.d.ts",
+  "files": ["dist", "README.md", "LICENSE"],
+  "sideEffects": false,
+  "scripts": {
+    "build": "node scripts/build.mjs",
+    "check": "node scripts/check.mjs",
+    "dev": "node scripts/build.mjs && node scripts/serve.mjs"
+  },
+  "engines": { "node": ">=18" }
+}

@@ -1,0 +1,118 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <title>Playground · boot-effect</title>
+  <meta name="description" content="Run boot-effect live. Scrub the 250 frames, change the fit and scale, load your own photograph, and copy the options.">
+  <meta name="theme-color" content="#f5f3fa">
+  <link rel="icon" href="favicon.svg" type="image/svg+xml">
+  <link rel="preload" href="assets/fonts/lora.woff" as="font" type="font/woff" crossorigin>
+  <meta property="og:type" content="website">
+  <meta property="og:title" content="boot-effect playground">
+  <meta property="og:description" content="Run the effect live, scrub every frame, try your own photograph.">
+  <meta property="og:image" content="https://adityabhatnagar1.github.io/boot-effect/assets/social-card.png">
+  <meta name="twitter:card" content="summary_large_image">
+  <link rel="stylesheet" href="assets/site.css">
+</head>
+<body>
+  <header class="site-header">
+    <div class="wrap">
+      <a class="wordmark" href="./" aria-label="boot-effect home">
+        <svg viewBox="0 0 64 64" aria-hidden="true"><rect width="64" height="64" rx="14" fill="#0b2bd0"/><g fill="none" stroke="#fff"><circle cx="32" cy="32" r="7" fill="#f26a2e" stroke="none"/><circle cx="32" cy="32" r="14" stroke-width="2.6"/><circle cx="32" cy="32" r="22" stroke-width="2" opacity=".6"/></g></svg>
+        boot-effect
+      </a>
+      <nav class="site-nav" aria-label="Main">
+        <a href="playground.html" aria-current="page">Playground</a>
+        <a href="docs.html">Docs</a>
+        <a href="how-it-works.html" class="nav-optional">How it works</a>
+        <a class="nav-gh" href="https://github.com/adityabhatnagar1/boot-effect">GitHub</a>
+      </nav>
+    </div>
+  </header>
+
+  <main class="pg">
+    <div class="wrap">
+      <div class="support-note" id="support-note" role="alert">This browser cannot create a WebGL context, so the effect cannot run here. The docs and the frame gallery still work.</div>
+
+      <div class="pg-layout">
+        <div class="pg-stage-col">
+          <div class="stage-frame">
+            <div class="stage" id="stage" data-shape="wide"></div>
+          </div>
+
+          <div class="transport">
+            <button id="play" type="button">Pause</button>
+            <label class="sr-only" for="scrub">Frame</label>
+            <input id="scrub" type="range" min="0" max="249" step="1" value="0">
+            <output id="time">000 / 249</output>
+          </div>
+
+          <div class="phases pg-phases" id="phases" aria-label="Phases of the sequence">
+            <button class="p-photo" type="button" data-frame="0" style="flex:14" title="Frames 0 to 13">photo</button>
+            <button class="p-grid" type="button" data-frame="14" style="flex:190" title="Frames 14 to 203">polar grid</button>
+            <button class="p-cut" type="button" data-frame="204" style="flex:5" title="Frames 204 to 208" aria-label="cut, frames 204 to 208"></button>
+            <button class="p-stop" type="button" data-frame="209" style="flex:41" title="Frames 209 to 249">stop screen</button>
+          </div>
+          <div class="phase-scale"><span>0</span><span>60</span><span>120</span><span>180</span><span>249</span></div>
+
+          <dl class="readout" aria-label="Sky analysis of the current photograph">
+            <div><dt>Sky rule</dt><dd id="r-mode">-</dd></div>
+            <div><dt>Centre</dt><dd id="r-centre">-</dd></div>
+            <div><dt>Clear disc</dt><dd id="r-radius">-</dd></div>
+            <div><dt>Reach</dt><dd id="r-reach">-</dd></div>
+          </dl>
+
+          <div class="pg-code">
+            <div class="code"><span class="label">Your options</span><pre id="snippet"></pre></div>
+          </div>
+        </div>
+
+        <aside class="panel" aria-label="Controls">
+          <h2>Playback</h2>
+          <label class="field"><span>Speed <output id="o-speed">1x</output></span><input id="speed" type="range" min="0.25" max="2" step="0.25" value="1"></label>
+          <label class="check"><input id="loop" type="checkbox"> Loop</label>
+
+          <h2>Preview</h2>
+          <div class="field">
+            <span>Box shape</span>
+            <div class="seg" id="shape" role="group" aria-label="Box shape">
+              <button type="button" data-shape="wide" aria-pressed="true">16:9</button>
+              <button type="button" data-shape="phone" aria-pressed="false">9:16</button>
+              <button type="button" data-shape="square" aria-pressed="false">1:1</button>
+            </div>
+          </div>
+          <label class="field"><span>Fit</span>
+            <select id="fit"><option value="cover">cover (fill, crop)</option><option value="contain">contain (whole photo)</option><option value="fill">fill (stretch)</option></select>
+          </label>
+
+          <h2>Effect</h2>
+          <label class="field"><span>Effect scale <output id="o-scale">1.00</output></span><input id="scale" type="range" min="0.5" max="1.6" step="0.05" value="1"></label>
+          <label class="field"><span>Text scale <output id="o-text">1.00</output></span><input id="text" type="range" min="0.6" max="1.6" step="0.05" value="1"></label>
+          <label class="field"><span>Darken non-sky</span>
+            <select id="grade"><option value="auto">auto</option><option value="0">0 (off)</option><option value="0.3">0.3</option><option value="0.6">0.6</option><option value="1">1 (full)</option></select>
+          </label>
+
+          <h2>Photograph</h2>
+          <label class="file-btn">Use your own photo<input id="file" type="file" accept="image/*"></label>
+          <p class="hint">The file stays in your browser. Nothing is uploaded.</p>
+          <label class="field"><span>Sky rule</span>
+            <select id="sky"><option value="auto">auto</option><option value="warm">warm (sunrise, sunset)</option><option value="blue">blue (clear sky)</option><option value="haze">haze (fog, overcast)</option></select>
+          </label>
+          <label class="field"><span>Horizon <output id="o-horizon">0.49</output></span><input id="horizon" type="range" min="0.2" max="1" step="0.01" value="0.49"></label>
+          <p class="hint">Nothing below this fraction of the photo height counts as sky. Set it to 1 to switch it off.</p>
+          <div class="panel-actions">
+            <button class="btn btn-ghost" id="lake" type="button" hidden>Back to the lake photo</button>
+            <button class="btn btn-ghost" id="snap" type="button">Download this frame (PNG)</button>
+            <button class="btn btn-ghost" id="share" type="button">Copy link to this state</button>
+          </div>
+        </aside>
+      </div>
+    </div>
+  </main>
+
+  <script src="lib/boot-effect.js"></script>
+  <script src="assets/site.js"></script>
+  <script src="assets/playground.js"></script>
+</body>
+</html>

@@ -1,0 +1,158 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <title>How it works · boot-effect</title>
+  <meta name="description" content="How boot-effect analyses a photograph, finds the sky, and renders 250 frames with one fragment shader.">
+  <meta name="theme-color" content="#f5f3fa">
+  <link rel="icon" href="favicon.svg" type="image/svg+xml">
+  <link rel="preload" href="assets/fonts/lora.woff" as="font" type="font/woff" crossorigin>
+  <meta property="og:type" content="website">
+  <meta property="og:title" content="How boot-effect works">
+  <meta property="og:description" content="Sky analysis, a log-polar grid, and one fragment shader for all 250 frames.">
+  <meta property="og:image" content="https://adityabhatnagar1.github.io/boot-effect/assets/social-card.png">
+  <meta name="twitter:card" content="summary_large_image">
+  <link rel="stylesheet" href="assets/site.css">
+</head>
+<body>
+  <header class="site-header">
+    <div class="wrap">
+      <a class="wordmark" href="./" aria-label="boot-effect home">
+        <svg viewBox="0 0 64 64" aria-hidden="true"><rect width="64" height="64" rx="14" fill="#0b2bd0"/><g fill="none" stroke="#fff"><circle cx="32" cy="32" r="7" fill="#f26a2e" stroke="none"/><circle cx="32" cy="32" r="14" stroke-width="2.6"/><circle cx="32" cy="32" r="22" stroke-width="2" opacity=".6"/></g></svg>
+        boot-effect
+      </a>
+      <nav class="site-nav" aria-label="Main">
+        <a href="playground.html">Playground</a>
+        <a href="docs.html">Docs</a>
+        <a href="how-it-works.html" class="nav-optional" aria-current="page">How it works</a>
+        <a class="nav-gh" href="https://github.com/adityabhatnagar1/boot-effect">GitHub</a>
+      </nav>
+    </div>
+  </header>
+
+  <main>
+    <div class="page-title paper-grid">
+      <div class="wrap">
+        <span class="kicker">How it works</span>
+        <h1>One photograph, one analysis, one shader</h1>
+        <p class="lede">There is no video and no stored animation. When the page loads, the library reads the photograph, works out where the sky is, and then draws each of the 250 frames from scratch.</p>
+      </div>
+    </div>
+
+    <div class="wrap docs">
+      <nav class="toc" aria-label="On this page">
+        <h2>On this page</h2>
+        <ul>
+          <li><a href="#pipeline">The pipeline</a></li>
+          <li><a href="#analysis">1. Analysis</a></li>
+          <li><a href="#framing">2. Framing</a></li>
+          <li><a href="#shader">3. The shader</a></li>
+          <li><a href="#timeline">4. The timeline</a></li>
+          <li><a href="#text">5. The stop screen</a></li>
+          <li><a href="#playback">6. Playback</a></li>
+        </ul>
+      </nav>
+
+      <article class="prose">
+        <h2 id="pipeline">The pipeline</h2>
+        <p>Loading and playing go through the same short chain, once per photograph and then once per frame:</p>
+        <ol>
+          <li><strong>Load and decode</strong> the photograph, off the main thread where the browser allows it.</li>
+          <li><strong>Analyse</strong> it on a canvas of at most 1600 pixels: a sky mask, a contrast map, and the largest circle of sky.</li>
+          <li><strong>Upload</strong> the photograph and the analysis as textures. The text layer is a third texture.</li>
+          <li><strong>Draw</strong> a single full-screen triangle strip per frame. A small table of keyframes decides what the shader does at each frame.</li>
+        </ol>
+
+        <h2 id="analysis">1. Analysis</h2>
+        <p>The analysis produces one texture the shader reads for every pixel: red holds a soft sky mask, green the luminance, blue the local contrast. It also records the centre and radius of the largest circle that fits inside the sky, how far the sky reaches from that centre, the mean sky colour, and how dense the photograph's edges are, which scales the speckle at the end.</p>
+        <div class="split top">
+          <figure class="figure">
+            <img src="assets/frames/sky-mask.jpg" width="960" height="540" loading="lazy" alt="The lake photograph with the detected sky tinted blue and the largest clear circle outlined in white">
+            <figcaption>The lake photo after analysis: sky in blue, the largest clear circle outlined. The reflection below the horizon is excluded.</figcaption>
+          </figure>
+          <div>
+            <h3 style="margin-top:0">Three rules, one choice</h3>
+            <p><code>auto</code> looks at the top 8% of the photograph. If a quarter or more of it is saturated and leans red (orange, pink, violet) it picks <code>warm</code>; otherwise, if more than 8% of the whole image is bright and blue, <code>blue</code>; otherwise <code>haze</code>.</p>
+            <p>The <code>warm</code> rule scores each pixel by how far its green channel falls below its red or blue ones. Orange, pink, violet and lavender all do; foliage, which leans green, does not. Pale glow near the sun is added by brightness.</p>
+            <p>Then two filters remove false positives. Everything below the <code>horizon</code> fraction of the height is cleared, and a flood fill from the top edge discards any bright region it cannot reach. That second step is what keeps a lit shoreline, or a mirrored sky, out of the mask.</p>
+          </div>
+        </div>
+        <p>The largest circle of sky is found with a chamfer distance transform on a copy of the mask no bigger than 256 pixels. The border of the photograph counts as an obstacle, so the circle never touches the top edge. Its centre is where the polar grid is anchored, and its radius sets the size of the whole effect.</p>
+
+        <h2 id="framing">2. Framing</h2>
+        <p>The photograph is placed in the canvas according to <code>fit</code>. With <code>cover</code>, the crop follows the sky: the focus point sits a little below the centre of the clear circle, clamped so a tall box does not slide off it. Every distance in the grid phase is then expressed in reference pixels of a frame 720 pixels wide, and a single scale factor maps those to device pixels.</p>
+        <p>That scale is the width of the photograph on screen divided by 720, times <code>effectScale</code>, times an automatic factor, between 0.35 and 1.15, that makes the disc, which has a radius of 67.5 reference pixels at rest, fit comfortably inside the clear circle. A small sky gets a small effect and a large sky a larger one.</p>
+
+        <h2 id="shader">3. The shader</h2>
+        <p>One fragment shader draws every phase. It reads a mode number and a handful of uniforms the frame table provides.</p>
+        <div class="figure" style="margin:1.4rem 0 1.8rem">
+          <div class="film" style="margin-inline:0;padding-inline:0">
+            <a href="playground.html?frame=40"><img src="assets/frames/040.jpg" width="960" height="540" loading="lazy" alt="Frame 40: the sky replaced by a polar grid around a disc"><span class="cap"><b>FRAME 040</b>Log-polar grid, 144 angular divisions.</span></a>
+            <a href="playground.html?frame=90"><img src="assets/frames/090.jpg" width="960" height="540" loading="lazy" alt="Frame 90: dialog windows tiling the grid"><span class="cap"><b>FRAME 090</b>Dialog tiles, revealed from the edge inward.</span></a>
+            <a href="playground.html?frame=152"><img src="assets/frames/152.jpg" width="960" height="540" loading="lazy" alt="Frame 152: violet rings and sparks around the disc"><span class="cap"><b>FRAME 152</b>Glow rings and sparks around the disc.</span></a>
+          </div>
+        </div>
+        <ul>
+          <li><strong>The grid.</strong> Around the centre, lines run along 144 equal angles and along circles spaced logarithmically in radius, so cells stay roughly square at every distance. Line width is held constant in screen space and fades out where cells become too small to read. A second, coarser set of rings sits outside the disc early on.</li>
+          <li><strong>Dialog tiles.</strong> Beyond 186 reference pixels the grid is divided into 24 sectors by logarithmic rows. A hash of the cell decides whether it holds a tile and what its title bar and progress bar look like. Tiles appear in order of distance from the edge of the sky toward the disc, and drop out again later in the sequence.</li>
+          <li><strong>The disc.</strong> Inside the disc radius the photograph shows through; outside it, where the mask says sky, the grid replaces it. The disc starts larger than the frame, closes to about 60 reference pixels, holds, and collapses to nothing as it fills with white.</li>
+          <li><strong>Glow and sparks.</strong> A tinted band, then violet rings, circle the disc, and small bright cells flicker inside it.</li>
+          <li><strong>Edge colour.</strong> During the grid phase the red and blue channels of the photograph are sampled 1.5 reference pixels apart, a slight chromatic split. Everything that is not sky is darkened by <code>grade</code>.</li>
+          <li><strong>Sampling and finish.</strong> The photograph is read with a bicubic Catmull-Rom filter built from five bilinear taps, optionally sharpened when magnified. Photo phases end with a one-level dither so sunset gradients do not band.</li>
+        </ul>
+
+        <h2 id="timeline">4. The timeline</h2>
+        <p>The whole sequence is 250 frames at 30 fps. Frame numbers below are the ones the <a href="playground.html">playground</a> scrubber uses.</p>
+        <div class="phases" aria-hidden="true">
+          <span class="p-photo" style="flex:14">photo</span>
+          <span class="p-grid" style="flex:190">polar grid</span>
+          <span class="p-cut" style="flex:5"></span>
+          <span class="p-stop" style="flex:41">stop screen</span>
+        </div>
+        <div class="phase-scale"><span>0</span><span>60</span><span>120</span><span>180</span><span>249</span></div>
+        <div class="table-wrap"><table>
+          <thead><tr><th>Frames</th><th>What is on screen</th></tr></thead>
+          <tbody>
+            <tr><td>0 to 13</td><td>The photograph. A two-frame flash of speckle at frames 4 and 5.</td></tr>
+            <tr><td>14 to 203</td><td>The polar grid. The disc starts larger than the frame, closes to about 60 reference pixels by frame 52, and holds. Dialog tiles are revealed between frames 50 and 100 and drop out between 148 and 178. A glow starts near frame 118 and turns to violet rings by 139. The disc collapses from frame 176 and is white by 198.</td></tr>
+            <tr><td>204 to 205</td><td>A hard black and white cut of the photograph.</td></tr>
+            <tr><td>206 to 208</td><td>A mosaic of 9-pixel blocks.</td></tr>
+            <tr><td>209 to 249</td><td>The stop screen. Flat blue with typed text, interrupted by a tinted ghost of the photograph (215 to 217), speckle (222 to 226), three frames of plain photograph (230 to 232), and speckle again from frame 238 to the end.</td></tr>
+          </tbody>
+        </table></div>
+
+        <h2 id="text">5. The stop screen</h2>
+        <p>The text is drawn on a 2D canvas at the device resolution of the output, uploaded as a texture, and composited by the shader in white. A keyframe table says how many characters have been typed by each frame; when the text reaches the bottom of the screen it scrolls. The canvas is only redrawn when the number of visible characters or the output size changes.</p>
+        <p>The speckle at the end is not random noise. Its density at each pixel comes from the contrast map, so it gathers along the edges of the photograph and leaves the sky clear; the sky is drawn as flat blue.</p>
+
+        <h2 id="playback">6. Playback</h2>
+        <p>Frames are chosen from elapsed time, not counted, so the sequence takes 8.3 seconds on a 60 Hz display, a 120 Hz display, or a slow one that drops frames. A frame is only redrawn when its number changes.</p>
+        <p>If the average frame takes more than 30 milliseconds over 24 frames, the library lowers the pixel ratio in steps. Playback pauses when the tab is hidden, and the canvas is rebuilt if the GPU context is lost. The photograph pyramid, a stack of box-filtered half-size copies, keeps small screens from aliasing: the smallest copy that still carries enough pixels for the box is the one that is drawn.</p>
+        <div class="callout"><p>Want to see these steps happen? Scrub the <a href="playground.html">playground</a> one frame at a time, or load your own photograph and check what the analysis found.</p></div>
+      </article>
+    </div>
+  </main>
+
+  <footer class="site-footer">
+    <div class="wrap">
+      <div>
+        <a class="wordmark" href="./">boot-effect</a>
+        <p style="max-width:22rem;margin:0">A procedural boot intro for any photograph.<br>Made by <a href="https://adityabhatnagar.is-a.dev">Aditya Bhatnagar</a>.</p>
+        <small>Code is MIT licensed. The demo photograph is not part of that licence.</small>
+      </div>
+      <div>
+        <h2>Project</h2>
+        <ul>
+          <li><a href="docs.html">Documentation</a></li>
+          <li><a href="playground.html">Playground</a></li>
+          <li><a href="how-it-works.html">How it works</a></li>
+          <li><a href="https://github.com/adityabhatnagar1/boot-effect">Source on GitHub</a></li>
+        </ul>
+      </div>
+    </div>
+  </footer>
+
+  <script src="assets/site.js"></script>
+</body>
+</html>

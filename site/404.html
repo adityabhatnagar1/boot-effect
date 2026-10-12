@@ -1,0 +1,38 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Page not found · boot-effect</title>
+  <meta name="robots" content="noindex">
+  <meta name="theme-color" content="#0b2bd0">
+  <link rel="icon" href="/boot-effect/favicon.svg" type="image/svg+xml">
+  <style>
+    html, body { height: 100%; margin: 0; }
+    body {
+      display: grid; place-items: center; padding: 2rem;
+      background: #0b2bd0; color: #fff;
+      font: 700 clamp(0.8rem, 2.1vw, 1.15rem)/1.55 ui-monospace, "Cascadia Mono", "SF Mono", Menlo, Consolas, "DejaVu Sans Mono", monospace;
+    }
+    main { width: min(100%, 44rem); }
+    p { margin: 0 0 1.4em; }
+    a { color: #fff; }
+    .cursor { display: inline-block; width: 0.6em; height: 1.1em; background: #fff; vertical-align: text-bottom; animation: blink 1.1s steps(1) infinite; }
+    @keyframes blink { 50% { opacity: 0; } }
+    @media (prefers-reduced-motion: reduce) { .cursor { animation: none; } }
+  </style>
+</head>
+<body>
+  <main>
+    <p>A problem has been detected and this page has been shut down to prevent damage to your visit.</p>
+    <p>PAGE_NOT_FOUND</p>
+    <p>If this is the first time you've seen this error, check the address. If it appears again, go back to one of these:</p>
+    <p>
+      <a href="/boot-effect/">Home</a><br>
+      <a href="/boot-effect/playground.html">Playground</a><br>
+      <a href="/boot-effect/docs.html">Documentation</a>
+    </p>
+    <p>*** STOP: 0x00000404 (0x00000000)<span class="cursor" aria-hidden="true"></span></p>
+  </main>
+</body>
+</html>
